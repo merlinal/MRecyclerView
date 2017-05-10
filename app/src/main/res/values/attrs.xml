@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="MRecyclerView">
+        <attr name="mode">
+            <flag name="list" value="1" />
+            <flag name="grid" value="2" />
+            <flag name="stagger" value="3" />
+        </attr>
+        <attr name="orientation">
+            <flag name="horizontal" value="0" />
+            <flag name="vertical" value="1" />
+        </attr>
+        <attr name="dividerColor" format="color" />
+        <attr name="dividerHeight" format="dimension" />
+        <attr name="dividerOffsetStart" format="integer" />
+        <attr name="dividerOffsetEnd" format="integer" />
+        <attr name="numColumns" format="integer" />
+    </declare-styleable>
+
+</resources>
