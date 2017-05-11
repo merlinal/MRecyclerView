@@ -11,12 +11,9 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
 
-import com.merlin.view.R;
-
 /**
- * Created by ncm on 16/11/13.
+ * zal
  */
-
 public class MRecyclerView extends RecyclerView {
 
     public final static int MODE_LIST = 1;
