@@ -18,23 +18,6 @@ public class RecyclerViewListener {
         this.recyclerView = recyclerView;
     }
 
-    public View.OnClickListener clickListener() {
-        return new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-            }
-        };
-    }
-
-    public View.OnLongClickListener longClickListener() {
-        return new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                return false;
-            }
-        };
-    }
-
     public SwipeRefreshLayout.OnRefreshListener onRefreshListener() {
         return new SwipeRefreshLayout.OnRefreshListener() {
             @Override
