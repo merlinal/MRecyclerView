@@ -18,18 +18,16 @@ public abstract class AbstractRecyclerVm<T> extends AbstractVM {
     }
 
     public AbstractRecyclerVm(boolean isInit) {
-        isRefreshing = new ObservableBoolean(false);
-        isLoading = new ObservableBoolean(false);
-        mDataList = new ArrayList<>();
+        super(false);
         if (isInit) {
             initData();
         }
     }
 
-    public ObservableBoolean isRefreshing;
-    public ObservableBoolean isLoading;
+    public ObservableBoolean isRefreshing = new ObservableBoolean(false);
+    public ObservableBoolean isLoading = new ObservableBoolean(false);
 
-    protected ArrayList<T> mDataList;
+    protected ArrayList<T> mDataList = new ArrayList<>();
 
     public AbstractRecyclerAdapter<T> mAdapter = initAdapter();
 
