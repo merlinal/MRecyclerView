@@ -13,10 +13,21 @@ import java.util.ArrayList;
 
 public abstract class AbstractRecyclerVm<T> extends AbstractVM {
 
-    public ObservableBoolean isRefreshing = new ObservableBoolean(false);
-    public ObservableBoolean isLoading = new ObservableBoolean(false);
+    public AbstractRecyclerVm() {
+        this(true);
+    }
 
-    protected ArrayList<T> mDataList = new ArrayList<>();
+    public AbstractRecyclerVm(boolean isInit) {
+        super(isInit);
+        isRefreshing = new ObservableBoolean(false);
+        isLoading = new ObservableBoolean(false);
+        mDataList = new ArrayList<>();
+    }
+
+    public ObservableBoolean isRefreshing;
+    public ObservableBoolean isLoading;
+
+    protected ArrayList<T> mDataList;
 
     public AbstractRecyclerAdapter<T> mAdapter = initAdapter();
 
