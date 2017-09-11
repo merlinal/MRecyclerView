@@ -1,5 +1,7 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
 apply plugin: 'com.android.library'
+//apply plugin: 'com.github.dcendents.android-maven'
+//group='com.github.merlinal'
 
 buildscript {
     repositories {
@@ -7,6 +9,11 @@ buildscript {
     }
     dependencies {
         classpath 'com.android.tools.build:gradle:2.3.2'
+
+        //1.自动化maven打包插件
+        //classpath "com.github.dcendents:android-maven-gradle-plugin:1.5"
+        //2.自动上传至Bintray平台插件
+        //classpath "com.jfrog.bintray.gradle:gradle-bintray-plugin:1.0"
 
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
@@ -49,6 +56,6 @@ android {
 
 dependencies {
     //    compile rootProject.ext.dependencies.recyclerView
-    compile 'com.android.support:recyclerview-v7:25.3.1'
+    provided 'com.android.support:recyclerview-v7:25.+'
     compile 'com.github.merlinal:mcore:-SNAPSHOT'
 }
