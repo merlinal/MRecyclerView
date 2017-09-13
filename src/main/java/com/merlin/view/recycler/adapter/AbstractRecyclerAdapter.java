@@ -7,7 +7,6 @@ import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.merlin.core.util.ValiUtil;
 import com.merlin.view.recycler.RecyclerViewHolder;
 
 import java.util.ArrayList;
@@ -138,7 +137,7 @@ public abstract class AbstractRecyclerAdapter<T> extends RecyclerView.Adapter<Re
      * @return
      */
     private int getNormalCount() {
-        return ValiUtil.isEmpty(mDataList) ? 0 : mDataList.size();
+        return mDataList == null ? 0 : mDataList.size();
     }
 
     /**

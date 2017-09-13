@@ -3,9 +3,9 @@ package com.merlin.view.recycler.adapter;
 import android.databinding.DataBindingUtil;
 import android.support.v7.widget.RecyclerView;
 import android.util.SparseIntArray;
+import android.view.LayoutInflater;
 import android.view.ViewGroup;
 
-import com.merlin.core.util.Util;
 import com.merlin.view.recycler.RecyclerViewHolder;
 
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ public class AdapterHelper {
 
     public RecyclerViewHolder onCreateViewHolder(ViewGroup parent, int viewType, boolean isDataBinding) {
         return isDataBinding ?
-                new RecyclerViewHolder(DataBindingUtil.inflate(Util.inflater(), layouts.get(viewType), parent, false))
+                new RecyclerViewHolder(DataBindingUtil.inflate(LayoutInflater.from(parent.getContext()), layouts.get(viewType), parent, false))
                 : new RecyclerViewHolder(parent, layouts.get(viewType));
     }
 

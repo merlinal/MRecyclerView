@@ -51,6 +51,7 @@ android {
 
 dependencies {
     //    compile rootProject.ext.dependencies.recyclerView
+    compile 'com.android.support:appcompat-v7:25.3.1'
     provided 'com.android.support:recyclerview-v7:25.3.1'
-    compile 'com.github.merlinal:mcore:-SNAPSHOT'
+//    compile 'com.github.merlinal:mcore:-SNAPSHOT'
 }

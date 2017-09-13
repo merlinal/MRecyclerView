@@ -8,6 +8,7 @@ import android.os.Build.VERSION_CODES;
 import android.support.v4.view.ViewCompat;
 import android.support.v7.widget.RecyclerView;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
 import android.view.View;
@@ -19,7 +20,6 @@ import android.widget.AbsListView.OnScrollListener;
 import android.widget.LinearLayout;
 import android.widget.Scroller;
 
-import com.merlin.core.util.LogUtil;
 import com.merlin.view.recycler.R;
 import com.merlin.view.refresh.callback.IFooterCallBack;
 import com.merlin.view.refresh.callback.IHeaderCallBack;
@@ -340,7 +340,7 @@ public class MRefreshView extends LinearLayout {
     protected void onLayout(boolean changed, int l, int t2, int r, int b) {
 //        super.onLayout(changed, l, t2, r, b);
 //        if(mHolder.mOffsetY!=0)return;
-        LogUtil.d("onLayout mHolder.mOffsetY=" + mHolder.mOffsetY);
+        Log.d("RefreshView", "onLayout mHolder.mOffsetY=" + mHolder.mOffsetY);
         int childCount = getChildCount();
         int top = getPaddingTop() + mHolder.mOffsetY;
         int adHeight = 0;
@@ -461,7 +461,7 @@ public class MRefreshView extends LinearLayout {
                 if (mMoveForHorizontal) {
                     return super.dispatchTouchEvent(ev);
                 }
-                LogUtil.d("isTop=" + mContentView.isTop() + ";isBottom=" + mContentView.isBottom());
+                Log.d("RefreshView", "isTop=" + mContentView.isTop() + ";isBottom=" + mContentView.isBottom());
                 if (deltaY > 0 && mHolder.mOffsetY <= mHeadMoveDistence || deltaY < 0) {
                     deltaY = (int) (deltaY / OFFSET_RADIO);
                 } else {
@@ -553,7 +553,7 @@ public class MRefreshView extends LinearLayout {
 
     private void sendCancelEvent() {
         if (!mHasSendCancelEvent) {
-            LogUtil.d("sendCancelEvent");
+            Log.d("RefreshView", "sendCancelEvent");
             setRefreshTime();
             mHasSendCancelEvent = true;
             mHasSendDownEvent = false;
@@ -585,7 +585,7 @@ public class MRefreshView extends LinearLayout {
 
     private void sendDownEvent() {
         if (!mHasSendDownEvent) {
-            LogUtil.d("sendDownEvent");
+            Log.d("RefreshView", "sendDownEvent");
             mHasSendCancelEvent = false;
             mHasSendDownEvent = true;
             isIntercepted = false;
@@ -825,7 +825,7 @@ public class MRefreshView extends LinearLayout {
             offsetY = 0 - mHolder.mOffsetY;
             startScroll(offsetY, RefreshUtil.computeScrollVerticalDuration(offsetY, getHeight()));
         }
-        LogUtil.d("resetHeaderHeight offsetY=" + offsetY);
+        Log.d("RefreshView", "resetHeaderHeight offsetY=" + offsetY);
     }
 
     public void moveView(int deltaY) {
@@ -857,7 +857,7 @@ public class MRefreshView extends LinearLayout {
      * stop refresh, reset header view.
      */
     public void stopRefresh(boolean success) {
-        LogUtil.d("stopRefresh mPullRefreshing=" + mPullRefreshing);
+        Log.d("RefreshView", "stopRefresh mPullRefreshing=" + mPullRefreshing);
         if (mPullRefreshing == true) {
             mStopingRefresh = true;
             mHeaderCallBack.onStateFinish(success);
@@ -1040,7 +1040,7 @@ public class MRefreshView extends LinearLayout {
                 moveView(offsetY);
                 int[] location = new int[2];
                 mHeaderView.getLocationInWindow(location);
-                LogUtil.d("currentY=" + currentY + ";mHolder.mOffsetY=" + mHolder.mOffsetY);
+                Log.d("RefreshView", "currentY=" + currentY + ";mHolder.mOffsetY=" + mHolder.mOffsetY);
                 if (enableReleaseToLoadMore && mHolder.mOffsetY == 0 && mReleaseToLoadMore && mContentView != null && mContentView.isBottom()) {
                     mReleaseToLoadMore = false;
                     mContentView.startLoadMore(false, null, null);

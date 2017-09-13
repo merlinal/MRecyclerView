@@ -5,6 +5,7 @@ import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
@@ -13,7 +14,6 @@ import android.widget.AbsListView.OnScrollListener;
 import android.widget.LinearLayout.LayoutParams;
 import android.widget.ScrollView;
 
-import com.merlin.core.util.LogUtil;
 import com.merlin.view.refresh.callback.IFooterCallBack;
 import com.merlin.view.refresh.listener.OnBottomLoadMoreTime;
 import com.merlin.view.refresh.listener.OnTopRefreshTime;
@@ -156,7 +156,7 @@ public class MRefreshContentView implements OnScrollListener, OnTopRefreshTime, 
         RecyclerView.LayoutManager layoutManager = recyclerView.getLayoutManager();
         getRecyclerViewInfo(layoutManager);
         refreshAdapter(adapter, layoutManager);
-        LogUtil.d("test pre onScrolled mIsLoadingMore=" + mIsLoadingMore);
+        Log.d("RefreshView", "test pre onScrolled mIsLoadingMore=" + mIsLoadingMore);
         if (onRecyclerViewTop()) {
             if (RefreshUtil.isRecyclerViewFullscreen(recyclerView)) {
 //                        addFooterView(true);
@@ -219,7 +219,7 @@ public class MRefreshContentView implements OnScrollListener, OnTopRefreshTime, 
             if (recyclerView.getAdapter() instanceof BaseRecyclerAdapter) {
                 mRecyclerApdater = getRecyclerApdater(recyclerView);
             } else {
-                LogUtil.w(RECYCLERVIEW_ADAPTER_WARIN);
+                Log.w("RefreshView", RECYCLERVIEW_ADAPTER_WARIN);
             }
         }
         recyclerView.removeOnScrollListener(mOnScrollListener);
@@ -445,7 +445,7 @@ public class MRefreshContentView implements OnScrollListener, OnTopRefreshTime, 
             if (adapter instanceof BaseRecyclerAdapter) {
                 return (BaseRecyclerAdapter) adapter;
             } else {
-                LogUtil.w(RECYCLERVIEW_ADAPTER_WARIN);
+                Log.w("RefreshView", RECYCLERVIEW_ADAPTER_WARIN);
             }
         }
         return null;

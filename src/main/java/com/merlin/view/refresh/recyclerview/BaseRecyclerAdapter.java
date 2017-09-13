@@ -9,7 +9,6 @@ import android.view.ViewGroup;
 import android.view.ViewParent;
 import android.widget.FrameLayout;
 
-import com.merlin.core.util.LogUtil;
 import com.merlin.view.refresh.MRefreshView;
 import com.merlin.view.refresh.callback.IFooterCallBack;
 import com.merlin.view.refresh.utils.RefreshUtil;
@@ -61,7 +60,6 @@ public abstract class BaseRecyclerAdapter<VH extends RecyclerView.ViewHolder> ex
     private boolean removeFooter = false;
 
     public void addFooterView() {
-        LogUtil.d("test addFooterView");
         if (removeFooter) {
             notifyItemInserted(getItemCount());
             removeFooter = false;
@@ -74,7 +72,6 @@ public abstract class BaseRecyclerAdapter<VH extends RecyclerView.ViewHolder> ex
     }
 
     public void removeFooterView() {
-        LogUtil.d("test removeFooterView");
         if (!removeFooter) {
             notifyItemRemoved(getItemCount() - 1);
             removeFooter = true;
