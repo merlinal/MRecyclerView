@@ -210,4 +210,9 @@ public class RecyclerAdapter extends RecyclerView.Adapter<RecyclerViewHolder> {
         helper.removeItems(viewType);
     }
 
+    //重置数据
+    public <T> void reset(List<T> list){
+        helper.reset(list);
+    }
+
 }

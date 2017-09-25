@@ -187,4 +187,9 @@ public class RecyclerRefreshAdapter extends BaseRecyclerAdapter<RecyclerViewHold
         helper.removeItems(viewType);
     }
 
+    //重置数据
+    public <T> void reset(List<T> list){
+        helper.reset(list);
+    }
+
 }

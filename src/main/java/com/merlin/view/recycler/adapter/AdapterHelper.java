@@ -34,6 +34,15 @@ public class AdapterHelper {
             this.t = t;
             this.onBindDataListener = onBindDataListener;
         }
+
+        private Data(int viewType, OnBindDataListener<T> onBindDataListener){
+            this.viewType = viewType;
+            this.onBindDataListener = onBindDataListener;
+        }
+
+        public Data clone(){
+            return new Data(viewType, onBindDataListener);
+        }
     }
 
     private SparseIntArray layouts = new SparseIntArray();
@@ -230,6 +239,16 @@ public class AdapterHelper {
             }
         }
         adapter.notifyDataSetChanged();
+    }
+
+    //重置
+    public <T> void reset(List<T> list){
+        int viewType = dataList.get(headerCount).viewType;
+        OnBindDataListener listener = dataList.get(headerCount).onBindDataListener;
+        while (headerCount + footerCount < dataList.size()) {
+            dataList.remove(headerCount);
+        }
+        insert(headerCount, layouts.get(viewType), viewType, listener, list);
     }
 
 }
