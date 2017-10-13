@@ -43,12 +43,11 @@ public class RecyclerViewHolder extends RecyclerView.ViewHolder {
     }
 
     /**
-     *
      * @param id
      * @param <T>
      * @return
      */
-    public  <T extends View> T findById(int id) {
+    public <T extends View> T view(int id) {
         View childView = viewHolder.get(id);
         if (childView == null) {
             childView = itemView.findViewById(id);
