@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <View
+        android:id="@+id/m_progress_header_center"
+        android:layout_width="0dp"
+        android:layout_height="48dp"
+        android:layout_centerInParent="true" />
+
+    <com.merlin.view.load.ProgressView
+        android:id="@+id/m_progress_header_progressView"
+        android:layout_width="96dp"
+        android:layout_height="32dp"
+        android:layout_centerVertical="true"
+        android:layout_toLeftOf="@+id/m_progress_header_center" />
+
+    <TextView
+        android:id="@+id/m_progress_header_text"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_centerVertical="true"
+        android:layout_marginLeft="8dp"
+        android:layout_toRightOf="@+id/m_progress_header_center"
+        android:text="@string/m_refresh_hint_normal"
+        android:textColor="#00cd00" />
+
+</RelativeLayout>
