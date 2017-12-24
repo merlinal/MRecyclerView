@@ -9,7 +9,7 @@
         android:layout_height="48dp"
         android:layout_centerInParent="true" />
 
-    <com.merlin.view.load.ProgressView
+    <com.merlin.view.progress.ProgressView
         android:id="@+id/m_progress_header_progressView"
         android:layout_width="96dp"
         android:layout_height="32dp"

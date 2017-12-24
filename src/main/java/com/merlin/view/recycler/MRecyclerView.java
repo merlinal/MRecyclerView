@@ -10,10 +10,21 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.StaggeredGridLayoutManager;
 import android.util.AttributeSet;
+import android.view.LayoutInflater;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
+
+import com.merlin.view.recycler.load.AbstractFooterView;
+import com.merlin.view.recycler.load.AbstractHeaderView;
+import com.merlin.view.recycler.load.ProgressFooter;
+import com.merlin.view.recycler.load.ProgressHeader;
 
 /**
- * zal
+ * @author zal
+ * @date 2017/12/16.
  */
+
 public class MRecyclerView extends RecyclerView {
 
     public final static int MODE_LIST = 1;
@@ -21,7 +32,7 @@ public class MRecyclerView extends RecyclerView {
     public final static int MODE_STAGGER = 3;
 
     public MRecyclerView(Context context) {
-        this(context, null, 0);
+        this(context, null);
     }
 
     public MRecyclerView(Context context, @Nullable AttributeSet attrs) {
@@ -30,6 +41,39 @@ public class MRecyclerView extends RecyclerView {
 
     public MRecyclerView(Context context, @Nullable AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
+        init(context, attrs);
+    }
+
+    private WrapAdapter mWrapAdapter;
+    private DataObserver mDataObserver = new DataObserver();
+
+    private float mLastY = -1f;
+    private boolean isPullRefresh = false;
+    private AppBarStateChangeListener.State mAppbarState = AppBarStateChangeListener.State.EXPANDED;
+
+    private AbstractHeaderView iHeader;
+    private AbstractFooterView iFooter;
+
+    private OnRefreshListener onRefreshListener;
+    private OnLoadListener onLoadListener;
+
+    private boolean isAutoLoad = false;
+    private boolean isPullLoad = false;
+
+    private int mAutoLoadOffset = 0;
+
+    private int mode = MODE_LIST;
+    private int orientation;
+    private int dividerHeight;
+    private int dividerOffsetStart;
+    private int dividerOffsetEnd;
+    private int dividerColor;
+    private int numColumns;
+    private int emptyId;
+
+    private View mEmptyView;
+
+    private void init(Context context, @Nullable AttributeSet attrs) {
         if (attrs != null) {
             TypedArray typed = context.obtainStyledAttributes(attrs, R.styleable.MRecyclerView);
             if (typed != null) {
@@ -40,70 +84,299 @@ public class MRecyclerView extends RecyclerView {
                 dividerOffsetEnd = typed.getInteger(R.styleable.MRecyclerView_dividerOffsetEnd, 0);
                 dividerColor = typed.getColor(R.styleable.MRecyclerView_dividerColor, Color.TRANSPARENT);
                 numColumns = typed.getInteger(R.styleable.MRecyclerView_numColumns, 1);
+                emptyId = typed.getResourceId(R.styleable.MRecyclerView_emptyId, 0);
                 typed.recycle();
             }
-            setRecycler();
         }
+        setRecycler();
+
+        setPullRefresh(true);
+        setPullLoad(true);
+        mWrapAdapter = new WrapAdapter();
+        setRefreshHeader(new ProgressHeader(getContext()));
+        setLoadFooter(new ProgressFooter(getContext()));
     }
-
-    private int mode = MODE_LIST;
-    private int orientation;
-    private int dividerHeight;
-    private int dividerOffsetStart;
-    private int dividerOffsetEnd;
-    private int dividerColor;
-    private int numColumns;
-
-    private boolean loading = false;
 
     @Override
-    public void onScrolled(int dx, int dy) {
-        super.onScrolled(dx, dy);
+    protected void onAttachedToWindow() {
+        super.onAttachedToWindow();
+        if (emptyId != 0 && mEmptyView == null) {
+            mEmptyView = ((View) getParent()).findViewById(emptyId);
+        }
+    }
 
-        if (onScrollListener != null) {
-            LayoutManager layoutManager = getLayoutManager();
-            if (layoutManager == null) { //it maybe unnecessary
-                throw new RuntimeException("LayoutManagers is null,Please check it!");
+    /*****************************  MRecyclerView的刷新&加载更多  *****************************/
+
+    public void setPullRefresh(boolean enabled) {
+        isPullRefresh = enabled;
+        setOverScrollMode(isPullRefresh ? OVER_SCROLL_NEVER : OVER_SCROLL_IF_CONTENT_SCROLLS);
+    }
+
+    public void setPullLoad(boolean enabled) {
+        isPullLoad = enabled;
+        setOverScrollMode(isPullLoad ? OVER_SCROLL_NEVER : OVER_SCROLL_IF_CONTENT_SCROLLS);
+    }
+
+    public void setRefreshHeader(AbstractHeaderView headerView) {
+        iHeader = headerView;
+        mWrapAdapter.setRefreshHeader(iHeader);
+    }
+
+    public void setLoadFooter(AbstractFooterView footerView) {
+        iFooter = footerView;
+        mWrapAdapter.setLoadHeader(footerView);
+        iFooter.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                load();
             }
-            Adapter adapter = getAdapter();
-            if (adapter == null) { //it maybe unnecessary
-                throw new RuntimeException("Adapter is null,Please check it!");
-            }
-            //GridLayoutManager
-            if (layoutManager instanceof GridLayoutManager) {
-                GridLayoutManager gridLayoutManager = (GridLayoutManager) layoutManager;
-                int rowCount = (int) Math.ceil(adapter.getItemCount() * 1.0 / gridLayoutManager.getSpanCount());
-                int lastVisibleRowPosition = (int) Math.ceil(gridLayoutManager.findLastVisibleItemPosition() * 1.0 / gridLayoutManager.getSpanCount());
-                if (!loading) {
-                    onScrollListener.onScroll(this, getScrollState(), lastVisibleRowPosition, rowCount);
-                }
-            }
-            //LinearLayoutManager
-            else if (layoutManager instanceof LinearLayoutManager) {
-                int lastVisibleItemPosition = ((LinearLayoutManager) layoutManager).findLastVisibleItemPosition();
-                int rowCount = adapter.getItemCount();
-                if (!loading) {
-                    onScrollListener.onScroll(this, getScrollState(), lastVisibleItemPosition, rowCount);
-                }
-            }
-            //StaggeredGridLayoutManager
-            else if (layoutManager instanceof StaggeredGridLayoutManager) {
-                StaggeredGridLayoutManager staggeredGridLayoutManager = (StaggeredGridLayoutManager) layoutManager;
-                int spanCount = staggeredGridLayoutManager.getSpanCount();
-                int[] into = new int[spanCount];
-                int[] eachSpanListVisibleItemPosition = staggeredGridLayoutManager.findLastVisibleItemPositions(into);
-                int lastPosition = 0;
-                for (int i = 0; i < spanCount; i++) {
-                    lastPosition = Math.max(lastPosition, eachSpanListVisibleItemPosition[i]);
-                }
-                if (!loading) {
-                    onScrollListener.onScroll(this, getScrollState(),
-                            (int) Math.ceil(lastPosition / spanCount),
-                            (int) Math.ceil(adapter.getItemCount() * 1.0 / spanCount));
-                }
+        });
+    }
+
+    public void addHeader(View view) {
+        mWrapAdapter.addHeader(view);
+    }
+
+    public void addFooter(View view) {
+        mWrapAdapter.addFooter(view);
+    }
+
+    public void refresh() {
+        smoothScrollToPosition(0);
+        if (onRefreshListener != null && !iHeader.isLoading()) {
+            onRefreshListener.onRefresh();
+            iHeader.loading();
+        }
+    }
+
+    public void load() {
+        smoothScrollToPosition(getAdapter().getItemCount() - 1);
+        if (onLoadListener != null && !iFooter.isLoading() && iFooter.isHasMore()) {
+            onLoadListener.onLoad();
+            iFooter.loading();
+        }
+    }
+
+    @Override
+    public void setAdapter(RecyclerView.Adapter adapter) {
+        mWrapAdapter.setAdapter(adapter);
+        super.setAdapter(mWrapAdapter);
+        adapter.registerAdapterDataObserver(mDataObserver);
+        mDataObserver.onChanged();
+    }
+
+    @Override
+    public void onScrollStateChanged(int state) {
+        super.onScrollStateChanged(state);
+        if (state == RecyclerView.SCROLL_STATE_IDLE
+                && !iHeader.isLoading()
+                && onLoadListener != null && !iFooter.isLoading() && iFooter.isHasMore() && isAutoLoad) {
+            if (getLayoutManager().getChildCount() > 0
+                    && getLastVisiblePosition() >= getAdapter().getItemCount() - 1 - mAutoLoadOffset
+                    && getAdapter().getItemCount() >= getLayoutManager().getChildCount()) {
+                onLoadListener.onLoad();
+                iFooter.loading();
             }
         }
     }
+
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        if (getVisibility() == GONE) {
+            return super.onTouchEvent(ev);
+        }
+        boolean isOnTop = isOnTop();
+        boolean isOnBottom = isOnBottom();
+        boolean isSkip = !(isOnTop && isPullRefresh) && !(isOnBottom && isPullLoad);
+        if (isSkip) {
+            mLastY = -1;
+            return super.onTouchEvent(ev);
+        }
+        if (mLastY == -1) {
+            mLastY = ev.getRawY();
+            if (isOnTop) {
+                iHeader.startLoad();
+            } else if (isOnBottom) {
+                iFooter.startLoad();
+            }
+        }
+        switch (ev.getAction()) {
+            case MotionEvent.ACTION_DOWN:
+                mLastY = ev.getRawY();
+                break;
+            case MotionEvent.ACTION_MOVE:
+                float deltaY = ev.getRawY() - mLastY;
+                mLastY = ev.getRawY();
+                if (isOnTop && isPullRefresh && mAppbarState == AppBarStateChangeListener.State.EXPANDED) {
+                    iHeader.onPulling(deltaY);
+                } else if (isOnBottom && isPullLoad) {
+                    iFooter.onPulling(deltaY);
+                }
+                if (iHeader.isHigherThanOrigin()) {
+                    return false;
+                }
+                break;
+            default:
+                // reset
+                mLastY = -1;
+                if (isOnTop && isPullRefresh && mAppbarState == AppBarStateChangeListener.State.EXPANDED) {
+                    if (iHeader.isLoadReady() && onRefreshListener != null && !iHeader.isLoading()) {
+                        onRefreshListener.onRefresh();
+                        iHeader.loading();
+                    } else {
+                        iHeader.loadCancel();
+                    }
+                } else if (isOnBottom && isPullLoad) {
+                    if (iFooter.isReadyLoad() && onLoadListener != null && !iFooter.isLoading() && iFooter.isHasMore()) {
+                        onLoadListener.onLoad();
+                        iFooter.loading();
+                    } else {
+                        iFooter.loadCancel();
+                    }
+                }
+                break;
+        }
+        return super.onTouchEvent(ev);
+    }
+
+    private boolean isOnTop() {
+        return iHeader.getParent() != null;
+//        return ((LinearLayoutManager) getLayoutManager()).findFirstCompletelyVisibleItemPosition() == 0;
+    }
+
+    private boolean isOnBottom() {
+        if (iFooter.isHigherThanOrigin()) {
+            return true;
+        }
+        return getLastVisiblePosition() == getAdapter().getItemCount() - 1;
+    }
+
+    private int getLastVisiblePosition() {
+        LayoutManager layoutManager = getLayoutManager();
+        int lastVisibleItemPosition;
+        if (layoutManager instanceof GridLayoutManager) {
+            lastVisibleItemPosition = ((GridLayoutManager) layoutManager).findLastCompletelyVisibleItemPosition();
+        } else if (layoutManager instanceof StaggeredGridLayoutManager) {
+            int[] into = new int[((StaggeredGridLayoutManager) layoutManager).getSpanCount()];
+            ((StaggeredGridLayoutManager) layoutManager).findLastCompletelyVisibleItemPositions(into);
+            lastVisibleItemPosition = into[0];
+            for (int value : into) {
+                if (value > lastVisibleItemPosition) {
+                    lastVisibleItemPosition = value;
+                }
+            }
+        } else {
+            lastVisibleItemPosition = ((LinearLayoutManager) layoutManager).findLastCompletelyVisibleItemPosition();
+        }
+        return lastVisibleItemPosition;
+    }
+
+    private class DataObserver extends RecyclerView.AdapterDataObserver {
+        @Override
+        public void onChanged() {
+            if (mWrapAdapter != null) {
+                mWrapAdapter.notifyDataSetChanged();
+            }
+            if (mWrapAdapter != null && mEmptyView != null) {
+                if (mWrapAdapter.getItemCount() == 2) {
+                    mEmptyView.setVisibility(View.VISIBLE);
+                    MRecyclerView.this.setVisibility(View.GONE);
+                } else {
+                    mEmptyView.setVisibility(View.GONE);
+                    MRecyclerView.this.setVisibility(View.VISIBLE);
+                }
+            }
+        }
+
+        @Override
+        public void onItemRangeInserted(int positionStart, int itemCount) {
+            mWrapAdapter.notifyItemRangeInserted(positionStart, itemCount);
+        }
+
+        @Override
+        public void onItemRangeChanged(int positionStart, int itemCount) {
+            mWrapAdapter.notifyItemRangeChanged(positionStart, itemCount);
+        }
+
+        @Override
+        public void onItemRangeChanged(int positionStart, int itemCount, Object payload) {
+            mWrapAdapter.notifyItemRangeChanged(positionStart, itemCount, payload);
+        }
+
+        @Override
+        public void onItemRangeRemoved(int positionStart, int itemCount) {
+            mWrapAdapter.notifyItemRangeRemoved(positionStart, itemCount);
+        }
+
+        @Override
+        public void onItemRangeMoved(int fromPosition, int toPosition, int itemCount) {
+            mWrapAdapter.notifyItemMoved(fromPosition, toPosition);
+        }
+    }
+
+    public void refreshed() {
+        iHeader.loaded();
+    }
+
+    public void loaded() {
+        iFooter.loaded();
+    }
+
+    public void setHasMore(boolean isHasMore) {
+        iFooter.setHasMore(isHasMore);
+    }
+
+    public boolean isRefreshing() {
+        return iHeader.isLoading();
+    }
+
+    public boolean isLoading() {
+        return iFooter.isLoading();
+    }
+
+    public boolean isHasMore() {
+        return iFooter.isHasMore();
+    }
+
+    public void setOnRefreshListener(OnRefreshListener onRefreshListener) {
+        this.onRefreshListener = onRefreshListener;
+    }
+
+    public void setOnLoadListener(OnLoadListener onLoadListener) {
+        this.onLoadListener = onLoadListener;
+    }
+
+    public interface OnRefreshListener {
+        void onRefresh();
+    }
+
+    public interface OnLoadListener {
+        void onLoad();
+    }
+
+    /*****************************  MRecyclerView的空页面  *****************************/
+
+    public void setEmptyView(View emptyView) {
+        mEmptyView = emptyView;
+        ViewGroup parentView = (ViewGroup) getParent();
+        if (parentView != null) {
+            mEmptyView.setVisibility(View.GONE);
+            parentView.addView(mEmptyView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT));
+        }
+    }
+
+    public void setEmptyView(int layoutId) {
+        ViewGroup parentView = (ViewGroup) getParent();
+        if (parentView != null) {
+            mEmptyView = LayoutInflater.from(getContext()).inflate(layoutId, parentView, false);
+            parentView.addView(mEmptyView, new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT));
+        }
+    }
+
+    /*****************************  MRecyclerView的便捷配置  *****************************/
+
 
     private void setRecycler() {
         switch (mode) {
@@ -141,7 +414,7 @@ public class MRecyclerView extends RecyclerView {
         setItemAnimator(new DefaultItemAnimator());
     }
 
-    public void set(RecyclerView.LayoutManager layoutManager, ItemDecoration decoration, ItemAnimator animator) {
+    public void set(LayoutManager layoutManager, ItemDecoration decoration, ItemAnimator animator) {
         setLayoutManager(layoutManager);
 
         if (decoration == null) {
@@ -164,20 +437,6 @@ public class MRecyclerView extends RecyclerView {
         this.dividerColor = dividerColor;
         this.numColumns = numColumns;
         setRecycler();
-    }
-
-    public void setLoading(boolean loading) {
-        this.loading = loading;
-    }
-
-    public interface OnScrollListener {
-        void onScroll(MRecyclerView recyclerView, int state, int lastVisibleRow, int rowCount);
-    }
-
-    private OnScrollListener onScrollListener;
-
-    public void setOnScrollListener(OnScrollListener onScrollListener) {
-        this.onScrollListener = onScrollListener;
     }
 
 }

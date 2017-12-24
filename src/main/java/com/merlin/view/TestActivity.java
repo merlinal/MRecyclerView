@@ -10,14 +10,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
-import com.merlin.view.mrecycler.MRecyclerView;
-import com.merlin.view.mrecycler.ProgressFooter;
-import com.merlin.view.mrecycler.ProgressHeader;
+import com.merlin.view.recycler.AbstractRecyclerAdapter;
+import com.merlin.view.recycler.MRecyclerView;
 import com.merlin.view.recycler.R;
+import com.merlin.view.recycler.RecyclerViewHolder;
 
 import java.util.ArrayList;
-
-import static java.security.AccessController.getContext;
+import java.util.List;
 
 /**
  * Created by Administrator on 2017/12/16.
@@ -36,11 +35,7 @@ public class TestActivity extends Activity {
         setContentView(R.layout.test);
         initData();
         final MRecyclerView mRecyclerView = (MRecyclerView) findViewById(R.id.mRecyclerView);
-        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
-//        mRecyclerView.addHeader(LayoutInflater.from(this).inflate(R.layout.m_progress_footer, null));
-//        mRecyclerView.addHeader(LayoutInflater.from(this).inflate(R.layout.m_progress_footer, null));
-//        mRecyclerView.addFooter(LayoutInflater.from(this).inflate(R.layout.m_progress_header, null));
-        mRecyclerView.setAdapter(mAdapter = new HomeAdapter());
+        mRecyclerView.setAdapter(mAdapter = new HomeAdapter(mDatas));
         mRecyclerView.setOnRefreshListener(new MRecyclerView.OnRefreshListener() {
             @Override
             public void onRefresh() {
@@ -71,17 +66,22 @@ public class TestActivity extends Activity {
                         }
                         count = count + 20;
                         mRecyclerView.setHasMore(count < 150);
+//                        mRecyclerView.setHasMore(false);
                         mAdapter.notifyDataSetChanged();
                     }
                 }, 3000);
             }
         });
+        TextView textView = new TextView(this);
+        textView.setText("代码生成空页面");
+        textView.setTextColor(0xff00cd00);
+        mRecyclerView.setEmptyView(textView);
+
+        mRecyclerView.addHeader(LayoutInflater.from(this).inflate(R.layout.m_progress_header, null));
+        mRecyclerView.addHeader(LayoutInflater.from(this).inflate(R.layout.m_progress_header, null));
+        mRecyclerView.addFooter(LayoutInflater.from(this).inflate(R.layout.m_progress_header, null));
+
         mRecyclerView.refresh();
-//        mRecyclerView.addHeader(new ProgressHeader(this));
-//        mRecyclerView.addHeader(new BlankHeader(this));
-//        mRecyclerView.addFooter(new ProgressHeader(this));
-//        mRecyclerView.addFooter(new ProgressHeader(this));
-//        mRecyclerView.addFooter(new ProgressHeader(this));
     }
 
     protected void initData() {
@@ -89,34 +89,21 @@ public class TestActivity extends Activity {
 
     }
 
-    class HomeAdapter extends RecyclerView.Adapter<HomeAdapter.MyViewHolder> {
+    class HomeAdapter extends AbstractRecyclerAdapter<String> {
 
-        @Override
-        public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            MyViewHolder holder = new MyViewHolder(LayoutInflater.from(
-                    TestActivity.this).inflate(R.layout.test_item, parent,
-                    false));
-            return holder;
+        public HomeAdapter(List<String> mDataList) {
+            super(mDataList);
         }
 
         @Override
-        public void onBindViewHolder(MyViewHolder holder, int position) {
-            holder.tv.setText(mDatas.get(position));
+        public int getItemResId(ViewGroup parent, int viewType) {
+            return R.layout.test_item;
         }
 
         @Override
-        public int getItemCount() {
-            return mDatas.size();
-        }
-
-        class MyViewHolder extends RecyclerView.ViewHolder {
-
-            TextView tv;
-
-            public MyViewHolder(View view) {
-                super(view);
-                tv = (TextView) view.findViewById(R.id.id_num);
-            }
+        public void onBindViewHolder(RecyclerViewHolder holder, int position) {
+            TextView tv = holder.view(R.id.id_num);
+            tv.setText(getData(position));
         }
     }
 }

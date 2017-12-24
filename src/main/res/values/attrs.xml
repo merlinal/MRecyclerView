@@ -16,6 +16,7 @@
         <attr name="dividerOffsetStart" format="integer" />
         <attr name="dividerOffsetEnd" format="integer" />
         <attr name="numColumns" format="integer" />
+        <attr name="emptyId" format="reference" />
     </declare-styleable>
 
     <declare-styleable name="MRefreshView">
