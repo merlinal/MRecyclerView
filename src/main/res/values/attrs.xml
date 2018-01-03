@@ -17,13 +17,17 @@
         <attr name="dividerOffsetEnd" format="integer" />
         <attr name="numColumns" format="integer" />
         <attr name="emptyId" format="reference" />
-    </declare-styleable>
-
-    <declare-styleable name="MRefreshView">
-        <attr name="isHeightMatchParent" format="boolean" />
-        <attr name="isWidthMatchParent" format="boolean" />
-        <attr name="autoRefresh" format="boolean" />
-        <attr name="autoLoadMore" format="boolean" />
+        <attr name="pullRefresh" format="boolean" />
+        <attr name="pullLoad" format="boolean" />
+        <attr name="autoLoadOffset" format="integer" />
+        <attr name="refreshHeader">
+            <flag name="progress" value="1" />
+            <flag name="blank" value="2" />
+        </attr>
+        <attr name="loadFooter">
+            <flag name="progress" value="1" />
+            <flag name="blank" value="2" />
+        </attr>
     </declare-styleable>
 
 </resources>

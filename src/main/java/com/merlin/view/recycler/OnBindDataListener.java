@@ -1,11 +1,16 @@
 package com.merlin.view.recycler;
 
-import com.merlin.view.recycler.RecyclerViewHolder;
-
 /**
- * Created by zal on 2017/9/8.
+ * @author merlin
  */
 
 public interface OnBindDataListener<T> {
+    /**
+     * 绑定数据
+     *
+     * @param holder
+     * @param position
+     * @param t
+     */
     void onBindData(RecyclerViewHolder holder, int position, T t);
 }

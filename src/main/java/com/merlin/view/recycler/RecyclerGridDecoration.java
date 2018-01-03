@@ -53,6 +53,15 @@ public class RecyclerGridDecoration extends RecyclerView.ItemDecoration {
     @Override
     public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
         super.getItemOffsets(outRect, view, parent, state);
+        if (parent.getAdapter().getItemCount() == mOffsetStart + mOffsetEnd) {
+            //初次刷新，若outRect.set(0, 0, 0, 0)会导致刷新头部不显示
+            if (mOrientation == GridLayoutManager.HORIZONTAL) {
+                outRect.set(0, 0, 1, 0);
+            } else {
+                outRect.set(0, 0, 0, 1);
+            }
+            return;
+        }
         int spanCount = getSpanCount(parent);
         int childCount = parent.getAdapter().getItemCount();
         int position = parent.getChildLayoutPosition(view);
@@ -60,6 +69,7 @@ public class RecyclerGridDecoration extends RecyclerView.ItemDecoration {
             position = position - mOffsetStart;
             int itemCount = childCount - mOffsetStart - mOffsetEnd;
             if (mOrientation == GridLayoutManager.HORIZONTAL) {
+
                 if (isLastRaw(parent, position, spanCount, itemCount)) {
                     // 如果是最后一行，则不需要绘制底部
                     if (isLastColumn(parent, position, spanCount, itemCount)) {
@@ -176,34 +186,26 @@ public class RecyclerGridDecoration extends RecyclerView.ItemDecoration {
         LayoutManager layoutManager = parent.getLayoutManager();
         if (layoutManager instanceof GridLayoutManager) {
             childCount = childCount - (childCount % spanCount == 0 ? spanCount : childCount % spanCount);
-            if (pos >= childCount) {// 如果是最后一行，则不需要绘制底部
-                return true;
-            }
+            // 如果是最后一行，则不需要绘制底部
+            return pos >= childCount;
         } else if (layoutManager instanceof StaggeredGridLayoutManager) {
             int orientation = ((StaggeredGridLayoutManager) layoutManager).getOrientation();
             // StaggeredGridLayoutManager 且纵向滚动
             if (orientation == StaggeredGridLayoutManager.VERTICAL) {
                 childCount = childCount - childCount % spanCount;
                 // 如果是最后一行，则不需要绘制底部
-                if (pos >= childCount)
-                    return true;
-            }
-            // StaggeredGridLayoutManager 且横向滚动
-            else {
+                return pos >= childCount;
+            } else {
+                // StaggeredGridLayoutManager 且横向滚动
                 // 如果是最后一行，则不需要绘制底部
-                if ((pos + 1) % spanCount == 0) {
-                    return true;
-                }
+                return (pos + 1) % spanCount == 0;
             }
         }
         return false;
     }
 
     private boolean isHideDivider(RecyclerView parent, int pos, int childCount) {
-        if (pos >= mOffsetStart && pos < childCount - mOffsetEnd) {
-            return false;
-        }
-        return true;
+        return pos < mOffsetStart || pos >= childCount - mOffsetEnd;
     }
 
 }

@@ -111,4 +111,22 @@ public abstract class AbstractRecyclerAdapter<T> extends RecyclerView.Adapter<Re
         notifyDataSetChanged();
     }
 
+    /**
+     * @param t
+     */
+    public void add(T t) {
+        if (this.mDataList == null) {
+            this.mDataList = new ArrayList<>();
+        }
+        this.mDataList.add(t);
+        notifyDataSetChanged();
+    }
+
+    public List<T> data() {
+        if (this.mDataList == null) {
+            this.mDataList = new ArrayList<>();
+        }
+        return mDataList;
+    }
+
 }

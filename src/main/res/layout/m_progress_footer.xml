@@ -1,22 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:gravity="top|center"
-    android:orientation="vertical">
+    android:layout_height="wrap_content">
 
-    <ProgressBar
-        android:id="@+id/m_progress_header_bar"
-        android:layout_width="32dp"
+    <View
+        android:id="@+id/m_progress_footer_center"
+        android:layout_width="0dp"
+        android:layout_height="64dp"
+        android:layout_centerInParent="true" />
+
+    <com.merlin.view.progress.ProgressView
+        android:id="@+id/m_progress_footer_progressView"
+        android:layout_width="96dp"
         android:layout_height="32dp"
-        android:layout_marginTop="16dp" />
+        android:layout_centerVertical="true"
+        android:layout_marginRight="8dp"
+        android:layout_toLeftOf="@+id/m_progress_footer_center" />
 
     <TextView
-        android:id="@+id/m_progress_header_text"
+        android:id="@+id/m_progress_footer_text"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="16dp"
-        android:layout_marginTop="8dp"
-        android:text="@string/m_load_hint_normal" />
+        android:layout_centerVertical="true"
+        android:layout_toRightOf="@+id/m_progress_footer_center"
+        android:textColor="#999999" />
 
-</LinearLayout>
+</RelativeLayout>

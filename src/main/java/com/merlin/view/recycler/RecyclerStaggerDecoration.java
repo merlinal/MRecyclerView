@@ -52,6 +52,15 @@ public class RecyclerStaggerDecoration extends RecyclerView.ItemDecoration {
 
     @Override
     public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
+        if (parent.getAdapter().getItemCount() == mOffsetStart + mOffsetEnd) {
+            //初次刷新，若outRect.set(0, 0, 0, 0)会导致刷新头部不显示
+            if (mOrientation == GridLayoutManager.HORIZONTAL) {
+                outRect.set(0, 0, 1, 0);
+            } else {
+                outRect.set(0, 0, 0, 1);
+            }
+            return;
+        }
         super.getItemOffsets(outRect, view, parent, state);
         int spanCount = getSpanCount(parent);
         int childCount = parent.getAdapter().getItemCount();

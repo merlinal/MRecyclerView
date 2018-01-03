@@ -7,6 +7,7 @@ import android.graphics.Paint;
 import android.graphics.Rect;
 import android.graphics.drawable.Drawable;
 import android.support.v4.view.ViewCompat;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
@@ -16,7 +17,7 @@ import android.view.View;
  * <p/>
  * See the license above for details.
  */
-public class RecyclerListDecoration extends RecyclerView.ItemDecoration {
+public class RecyclerListDecoration extends RecyclerView.ItemDecoration implements MRecyclerView.OnDividerChangedListener {
 
     private Drawable mDivider;
     private int mHeight;
@@ -26,7 +27,13 @@ public class RecyclerListDecoration extends RecyclerView.ItemDecoration {
     private int mColor;
     private Paint dividerPaint;
 
-//    private static final int[] ATTRS = new int[]{
+    @Override
+    public void onOffsetChanged(int offsetStart, int offsetEnd) {
+        mOffsetStart = offsetStart;
+        mOffsetEnd = offsetEnd;
+    }
+
+    //    private static final int[] ATTRS = new int[]{
 //            android.R.attr.listDivider
 //    };
 
@@ -70,7 +77,15 @@ public class RecyclerListDecoration extends RecyclerView.ItemDecoration {
 
     @Override
     public void getItemOffsets(Rect outRect, View view, RecyclerView parent, RecyclerView.State state) {
-        outRect.set(0, 0, 0, 0);
+        if (parent.getAdapter().getItemCount() == mOffsetStart + mOffsetEnd) {
+            //初次刷新，若outRect.set(0, 0, 0, 0)会导致刷新头部不显示
+            if (mOrientation == GridLayoutManager.HORIZONTAL) {
+                outRect.set(0, 0, 1, 0);
+            } else {
+                outRect.set(0, 0, 0, 1);
+            }
+            return;
+        }
         if (mOrientation == LinearLayoutManager.HORIZONTAL) {
             if (isHideDivider(parent, parent.getChildLayoutPosition(view), parent.getAdapter().getItemCount())) {
                 outRect.set(0, 0, 0, 0);

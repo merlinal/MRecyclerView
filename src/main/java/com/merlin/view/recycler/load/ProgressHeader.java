@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.TextView;
 
+import com.merlin.view.progress.ProgressBallRoll;
 import com.merlin.view.progress.ProgressBallRotate;
 import com.merlin.view.progress.ProgressView;
 import com.merlin.view.recycler.R;
@@ -35,7 +36,6 @@ public class ProgressHeader extends AbstractHeaderView {
         mHintText = (TextView) view.findViewById(R.id.m_progress_header_text);
         mProgressView = (ProgressView) view.findViewById(R.id.m_progress_header_progressView);
         mProgressView.setProgress(new ProgressBallRotate(2, 12, 24, 1000, 0xff00cd00, 0xffcd0000));
-//        mProgressView.setProgress(new ProgressBallRoll(5, 12, 0xff00cd00, 0xffcd0000, 0xff0000cd));
         return view;
     }
 

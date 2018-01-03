@@ -48,8 +48,8 @@ public class ProgressBallRotate implements IProgress {
         小球2中心：右中左中右
         */
         mLoadingAnimMap.put("2radius", new float[][]{
-                {mRadius * 0.5f, mRadius, mRadius * 1.2f, mRadius, mRadius * 0.5f},
-                {mRadius, mRadius * 0.5f, mRadius, mRadius * 1.2f, mRadius}
+                {mRadius, mRadius * 1.3f, mRadius, mRadius * 0.5f, mRadius},
+                {mRadius, mRadius * 0.5f, mRadius, mRadius * 1.3f, mRadius}
         });
         mLoadingAnimMap.put("2distance", new float[][]{
                 {-1, 0, 1, 0, -1},

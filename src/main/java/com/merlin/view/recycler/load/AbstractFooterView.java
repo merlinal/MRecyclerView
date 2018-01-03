@@ -44,6 +44,14 @@ public abstract class AbstractFooterView extends FrameLayout implements ILoader 
         addView(mView, new FrameLayout.LayoutParams(FrameLayout.LayoutParams.MATCH_PARENT, 0));
     }
 
+    public void show() {
+        FrameLayout.LayoutParams params = (FrameLayout.LayoutParams) mView.getLayoutParams();
+        params.height = mViewHeight;
+        mView.setLayoutParams(params);
+        //初始化一下
+        onLoadStart();
+    }
+
     public void startLoad() {
         if (!isLoading && isHasMore) {
             onLoadStart();
@@ -146,15 +154,13 @@ public abstract class AbstractFooterView extends FrameLayout implements ILoader 
 
     public void setHasMore(boolean isHasMore) {
         this.isHasMore = isHasMore;
-        if (!isHasMore) {
-            onLoadOver();
-        }
+        onHasMoreChanged(isHasMore);
     }
 
     public boolean isHasMore() {
         return isHasMore;
     }
 
-    public abstract void onLoadOver();
+    public abstract void onHasMoreChanged(boolean isHasMore);
 
 }

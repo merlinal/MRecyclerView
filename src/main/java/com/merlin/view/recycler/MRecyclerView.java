@@ -17,6 +17,8 @@ import android.view.ViewGroup;
 
 import com.merlin.view.recycler.load.AbstractFooterView;
 import com.merlin.view.recycler.load.AbstractHeaderView;
+import com.merlin.view.recycler.load.BlankFooter;
+import com.merlin.view.recycler.load.BlankHeader;
 import com.merlin.view.recycler.load.ProgressFooter;
 import com.merlin.view.recycler.load.ProgressHeader;
 
@@ -30,6 +32,9 @@ public class MRecyclerView extends RecyclerView {
     public final static int MODE_LIST = 1;
     public final static int MODE_GRID = 2;
     public final static int MODE_STAGGER = 3;
+
+    public final static int MODE_PROGRESS = 1;
+    public final static int MODE_BLANK = 2;
 
     public MRecyclerView(Context context) {
         this(context, null);
@@ -60,7 +65,7 @@ public class MRecyclerView extends RecyclerView {
     private boolean isAutoLoad = false;
     private boolean isPullLoad = false;
 
-    private int mAutoLoadOffset = 0;
+    private int mAutoLoadOffset;
 
     private int mode = MODE_LIST;
     private int orientation;
@@ -73,7 +78,10 @@ public class MRecyclerView extends RecyclerView {
 
     private View mEmptyView;
 
+    private OnDividerChangedListener mDividerChangedListener;
+
     private void init(Context context, @Nullable AttributeSet attrs) {
+        int headerMode = MODE_PROGRESS, footerMode = MODE_PROGRESS;
         if (attrs != null) {
             TypedArray typed = context.obtainStyledAttributes(attrs, R.styleable.MRecyclerView);
             if (typed != null) {
@@ -85,16 +93,41 @@ public class MRecyclerView extends RecyclerView {
                 dividerColor = typed.getColor(R.styleable.MRecyclerView_dividerColor, Color.TRANSPARENT);
                 numColumns = typed.getInteger(R.styleable.MRecyclerView_numColumns, 1);
                 emptyId = typed.getResourceId(R.styleable.MRecyclerView_emptyId, 0);
+                isPullLoad = typed.getBoolean(R.styleable.MRecyclerView_pullLoad, true);
+                isPullRefresh = typed.getBoolean(R.styleable.MRecyclerView_pullRefresh, true);
+                mAutoLoadOffset = typed.getInt(R.styleable.MRecyclerView_autoLoadOffset, 0);
+                isAutoLoad = mAutoLoadOffset > 0;
+                mAutoLoadOffset = Math.min(mAutoLoadOffset, 5);
+
+                headerMode = typed.getInt(R.styleable.MRecyclerView_refreshHeader, MODE_PROGRESS);
+                footerMode = typed.getInt(R.styleable.MRecyclerView_loadFooter, MODE_PROGRESS);
+
                 typed.recycle();
             }
         }
+
         setRecycler();
 
-        setPullRefresh(true);
-        setPullLoad(true);
+        setPullRefresh(isPullRefresh);
+        setPullLoad(isPullLoad);
         mWrapAdapter = new WrapAdapter();
-        setRefreshHeader(new ProgressHeader(getContext()));
-        setLoadFooter(new ProgressFooter(getContext()));
+
+        switch (headerMode) {
+            case MODE_PROGRESS:
+                setRefreshHeader(new ProgressHeader(getContext()));
+                break;
+            default:
+                setRefreshHeader(new BlankHeader(getContext()));
+                break;
+        }
+        switch (footerMode) {
+            case MODE_PROGRESS:
+                setLoadFooter(new ProgressFooter(getContext()));
+                break;
+            default:
+                setLoadFooter(new BlankFooter(getContext()));
+                break;
+        }
     }
 
     @Override
@@ -118,11 +151,19 @@ public class MRecyclerView extends RecyclerView {
     }
 
     public void setRefreshHeader(AbstractHeaderView headerView) {
+        if (iHeader == null) {
+            dividerOffsetStart++;
+            dividerOffsetChanged();
+        }
         iHeader = headerView;
         mWrapAdapter.setRefreshHeader(iHeader);
     }
 
     public void setLoadFooter(AbstractFooterView footerView) {
+        if (iFooter == null) {
+            dividerOffsetEnd++;
+            dividerOffsetChanged();
+        }
         iFooter = footerView;
         mWrapAdapter.setLoadHeader(footerView);
         iFooter.setOnClickListener(new OnClickListener() {
@@ -316,6 +357,7 @@ public class MRecyclerView extends RecyclerView {
 
     public void refreshed() {
         iHeader.loaded();
+        iFooter.show();
     }
 
     public void loaded() {
@@ -389,21 +431,27 @@ public class MRecyclerView extends RecyclerView {
             case MODE_STAGGER:
                 staggered(numColumns, orientation, dividerHeight, dividerOffsetStart, dividerOffsetEnd, dividerColor);
                 break;
+            default:
+                break;
         }
     }
 
     private void list(int orientation, int dividerHeight, int dividerOffsetStart, int dividerOffsetEnd, int dividerColor) {
         setLayoutManager(new LinearLayoutManager(getContext(), orientation, false));
-        addItemDecoration(new RecyclerListDecoration(getContext(), orientation, dividerHeight, dividerOffsetStart, dividerOffsetEnd, dividerColor));
         setItemAnimator(new DefaultItemAnimator());
+        if (dividerHeight > 0) {
+            RecyclerListDecoration decoration = new RecyclerListDecoration(getContext(), orientation, dividerHeight, dividerOffsetStart, dividerOffsetEnd, dividerColor);
+            addItemDecoration(decoration);
+            setOnDividerChangedListener(decoration);
+        }
     }
 
     private void grid(int numColumns, int orientation, int dividerHeight, int dividerOffsetStart, int dividerOffsetEnd, int dividerColor) {
         setLayoutManager(new GridLayoutManager(getContext(), numColumns, orientation, false));
+        setItemAnimator(new DefaultItemAnimator());
         if (dividerHeight > 0) {
             addItemDecoration(new RecyclerGridDecoration(getContext(), orientation, dividerHeight, dividerOffsetStart, dividerOffsetEnd, dividerColor));
         }
-        setItemAnimator(new DefaultItemAnimator());
     }
 
     private void staggered(int numColumns, int orientation, int dividerHeight, int dividerOffsetStart, int dividerOffsetEnd, int dividerColor) {
@@ -437,6 +485,28 @@ public class MRecyclerView extends RecyclerView {
         this.dividerColor = dividerColor;
         this.numColumns = numColumns;
         setRecycler();
+    }
+
+    /*****************************  ItemDecoration的配置  *****************************/
+
+    private void dividerOffsetChanged() {
+        if (mDividerChangedListener != null) {
+            mDividerChangedListener.onOffsetChanged(dividerOffsetStart, dividerOffsetEnd);
+        }
+    }
+
+    public void setOnDividerChangedListener(OnDividerChangedListener onDividerChangedListener) {
+        this.mDividerChangedListener = onDividerChangedListener;
+    }
+
+    public interface OnDividerChangedListener {
+        /**
+         * 参数变化
+         *
+         * @param offsetStart 前偏移
+         * @param offsetEnd   后偏移
+         */
+        void onOffsetChanged(int offsetStart, int offsetEnd);
     }
 
 }

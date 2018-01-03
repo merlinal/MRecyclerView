@@ -1,5 +1,5 @@
 // Top-level build file where you can add configuration options common to all sub-projects/modules.
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 group = 'com.github.merlinal'
 
@@ -52,9 +52,9 @@ android {
 }
 
 dependencies {
-    compile 'com.android.support:recyclerview-v7:27.0.2'
-    compile 'com.android.support:appcompat-v7:27.0.2'
-    compile 'com.android.support:design:27.0.2'
+    provided 'com.android.support:recyclerview-v7:27.0.2'
+    provided 'com.android.support:appcompat-v7:27.0.2'
+    provided 'com.android.support:design:27.0.2'
 }
 
 // build a jar with source files

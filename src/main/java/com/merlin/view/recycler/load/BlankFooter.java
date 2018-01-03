@@ -66,7 +66,7 @@ public class BlankFooter extends AbstractFooterView {
     }
 
     @Override
-    public void onLoadOver() {
+    public void onHasMoreChanged(boolean isHasMore) {
 
     }
 }
