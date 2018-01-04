@@ -159,12 +159,12 @@ public class MRecyclerView extends RecyclerView {
 
     public void setPullRefresh(boolean enabled) {
         isPullRefresh = enabled;
-        setOverScrollMode(isPullRefresh ? OVER_SCROLL_NEVER : OVER_SCROLL_IF_CONTENT_SCROLLS);
+//        setOverScrollMode(isPullRefresh ? OVER_SCROLL_NEVER : OVER_SCROLL_IF_CONTENT_SCROLLS);
     }
 
     public void setPullLoad(boolean enabled) {
         isPullLoad = enabled;
-        setOverScrollMode(isPullLoad ? OVER_SCROLL_NEVER : OVER_SCROLL_IF_CONTENT_SCROLLS);
+//        setOverScrollMode(isPullLoad ? OVER_SCROLL_NEVER : OVER_SCROLL_IF_CONTENT_SCROLLS);
     }
 
     public void setRefreshHeader(AbstractHeaderView headerView) {
