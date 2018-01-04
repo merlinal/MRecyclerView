@@ -28,6 +28,8 @@
             <flag name="progress" value="1" />
             <flag name="blank" value="2" />
         </attr>
+        <attr name="maxHeight" format="dimension" />
+        <attr name="maxWidth" format="dimension" />
     </declare-styleable>
 
 </resources>

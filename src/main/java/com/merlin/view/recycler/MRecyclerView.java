@@ -75,6 +75,8 @@ public class MRecyclerView extends RecyclerView {
     private int dividerColor;
     private int numColumns;
     private int emptyId;
+    private int maxWidth;
+    private int maxHeight;
 
     private View mEmptyView;
 
@@ -96,6 +98,8 @@ public class MRecyclerView extends RecyclerView {
                 isPullLoad = typed.getBoolean(R.styleable.MRecyclerView_pullLoad, true);
                 isPullRefresh = typed.getBoolean(R.styleable.MRecyclerView_pullRefresh, true);
                 mAutoLoadOffset = typed.getInt(R.styleable.MRecyclerView_autoLoadOffset, 0);
+                maxWidth = (int) typed.getDimension(R.styleable.MRecyclerView_maxWidth, 0);
+                maxHeight = (int) typed.getDimension(R.styleable.MRecyclerView_maxHeight, 0);
                 isAutoLoad = mAutoLoadOffset > 0;
                 mAutoLoadOffset = Math.min(mAutoLoadOffset, 5);
 
@@ -128,6 +132,19 @@ public class MRecyclerView extends RecyclerView {
                 setLoadFooter(new BlankFooter(getContext()));
                 break;
         }
+    }
+
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        //设置控件最大宽高
+        if (maxWidth > 0) {
+            widthMeasureSpec = MeasureSpec.makeMeasureSpec(maxWidth, MeasureSpec.AT_MOST);
+        }
+        if (maxHeight > 0) {
+            heightMeasureSpec = MeasureSpec.makeMeasureSpec(maxHeight, MeasureSpec.AT_MOST);
+        }
+        //重新计算控件高、宽
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
     }
 
     @Override
