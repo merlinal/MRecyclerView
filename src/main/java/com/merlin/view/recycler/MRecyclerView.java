@@ -415,7 +415,7 @@ public class MRecyclerView extends RecyclerView {
         if (!isOnBottom()) {
             iFooter.show();
         } else {
-            isPullLoad = false;
+            hideLoadFooter();
         }
     }
 
