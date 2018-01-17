@@ -64,18 +64,32 @@ public class MRecyclerView extends RecyclerView {
 
     private boolean isAutoLoad = false;
     private boolean isPullLoad = false;
-
+    /**
+     * 底部还有mAutoLoadOffset项开始自动加载下一页数据
+     */
     private int mAutoLoadOffset;
 
     private int mode = MODE_LIST;
     private int orientation;
     private int dividerHeight;
+    /**
+     * 前dividerOffsetStart项之间无分隔线
+     */
     private int dividerOffsetStart;
+    /**
+     * 后dividerOffsetStart项之间无分隔线
+     */
     private int dividerOffsetEnd;
     private int dividerColor;
     private int numColumns;
     private int emptyId;
+    /**
+     * MRecyclerView的最大宽度
+     */
     private int maxWidth;
+    /**
+     * MRecyclerView的最大高度
+     */
     private int maxHeight;
 
     private View mEmptyView;
@@ -167,6 +181,11 @@ public class MRecyclerView extends RecyclerView {
 //        setOverScrollMode(isPullLoad ? OVER_SCROLL_NEVER : OVER_SCROLL_IF_CONTENT_SCROLLS);
     }
 
+    /**
+     * 下拉刷新头部
+     *
+     * @param headerView 头部View
+     */
     public void setRefreshHeader(AbstractHeaderView headerView) {
         if (iHeader == null) {
             dividerOffsetStart++;
@@ -176,6 +195,11 @@ public class MRecyclerView extends RecyclerView {
         mWrapAdapter.setRefreshHeader(iHeader);
     }
 
+    /**
+     * 加载更多底部
+     *
+     * @param footerView 底部View
+     */
     public void setLoadFooter(AbstractFooterView footerView) {
         if (iFooter == null) {
             dividerOffsetEnd++;
@@ -226,9 +250,12 @@ public class MRecyclerView extends RecyclerView {
     @Override
     public void onScrollStateChanged(int state) {
         super.onScrollStateChanged(state);
+        //scrollState有三种状态，分别是开始滚动（SCROLL_STATE_FLING），正在滚动(SCROLL_STATE_TOUCH_SCROLL), 已经停止（SCROLL_STATE_IDLE
+        //当 滚动停止&没有正在刷新&没有正在加载更多&有更多数据&自动加载开启 时
         if (state == RecyclerView.SCROLL_STATE_IDLE
                 && !iHeader.isLoading()
                 && onLoadListener != null && !iFooter.isLoading() && iFooter.isHasMore() && isAutoLoad) {
+            //当 已有item&最后可见的item到达自动加载条件&adapter中item数不小于子view数 时
             if (getLayoutManager().getChildCount() > 0
                     && getLastVisiblePosition() >= getAdapter().getItemCount() - 1 - mAutoLoadOffset
                     && getAdapter().getItemCount() >= getLayoutManager().getChildCount()) {
@@ -245,6 +272,7 @@ public class MRecyclerView extends RecyclerView {
         }
         boolean isOnTop = isOnTop();
         boolean isOnBottom = isOnBottom();
+        //不在顶部|不可下拉 且 不在底部|不可上拉 时，跳过onTouchEvent
         boolean isSkip = !(isOnTop && isPullRefresh) && !(isOnBottom && isPullLoad);
         if (isSkip) {
             mLastY = -1;
@@ -254,30 +282,36 @@ public class MRecyclerView extends RecyclerView {
             mLastY = ev.getRawY();
             if (isOnTop) {
                 iHeader.startLoad();
-            } else if (isOnBottom) {
+            } else {
                 iFooter.startLoad();
             }
         }
         switch (ev.getAction()) {
             case MotionEvent.ACTION_DOWN:
+                //记录y
                 mLastY = ev.getRawY();
                 break;
             case MotionEvent.ACTION_MOVE:
+                //y偏移量
                 float deltaY = ev.getRawY() - mLastY;
+                //更新y
                 mLastY = ev.getRawY();
+                //在顶部，下拉；在底部，上拉
                 if (isOnTop && isPullRefresh && mAppbarState == AppBarStateChangeListener.State.EXPANDED) {
                     iHeader.onPulling(deltaY);
                 } else if (isOnBottom && isPullLoad) {
                     iFooter.onPulling(deltaY);
                 }
+                //header被拉伸
                 if (iHeader.isHigherThanOrigin()) {
                     return false;
                 }
                 break;
             default:
-                // reset
+                //重置y
                 mLastY = -1;
                 if (isOnTop && isPullRefresh && mAppbarState == AppBarStateChangeListener.State.EXPANDED) {
+                    //达到下拉刷新条件&没有正在刷新，执行刷新；否则，取消刷新
                     if (iHeader.isLoadReady() && onRefreshListener != null && !iHeader.isLoading()) {
                         onRefreshListener.onRefresh();
                         iHeader.loading();
@@ -285,6 +319,7 @@ public class MRecyclerView extends RecyclerView {
                         iHeader.loadCancel();
                     }
                 } else if (isOnBottom && isPullLoad) {
+                    //达到上拉加载条件&没有正在加载&有更多数据，执行加载；否则，取消加载
                     if (iFooter.isReadyLoad() && onLoadListener != null && !iFooter.isLoading() && iFooter.isHasMore()) {
                         onLoadListener.onLoad();
                         iFooter.loading();
@@ -311,6 +346,7 @@ public class MRecyclerView extends RecyclerView {
 
     private int getLastVisiblePosition() {
         LayoutManager layoutManager = getLayoutManager();
+        //最后一个完整显示的item位置
         int lastVisibleItemPosition;
         if (layoutManager instanceof GridLayoutManager) {
             lastVisibleItemPosition = ((GridLayoutManager) layoutManager).findLastCompletelyVisibleItemPosition();
@@ -336,6 +372,7 @@ public class MRecyclerView extends RecyclerView {
                 mWrapAdapter.notifyDataSetChanged();
             }
             if (mWrapAdapter != null && mEmptyView != null) {
+                //=2 是因为下拉刷新头部+上拉加载底部一直都在
                 if (mWrapAdapter.getItemCount() == 2) {
                     mEmptyView.setVisibility(View.VISIBLE);
                     MRecyclerView.this.setVisibility(View.GONE);
@@ -374,11 +411,21 @@ public class MRecyclerView extends RecyclerView {
 
     public void refreshed() {
         iHeader.loaded();
-        iFooter.show();
+        //不满一屏，不显示加载更多
+        if (!isOnBottom()) {
+            iFooter.show();
+        } else {
+            isPullLoad = false;
+        }
     }
 
     public void loaded() {
         iFooter.loaded();
+    }
+
+    public void hideLoadFooter() {
+        isPullLoad = false;
+        iFooter.setVisibility(View.GONE);
     }
 
     public void setHasMore(boolean isHasMore) {
