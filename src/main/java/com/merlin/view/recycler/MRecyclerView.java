@@ -412,11 +412,16 @@ public class MRecyclerView extends RecyclerView {
     public void refreshed() {
         iHeader.loaded();
         //不满一屏，不显示加载更多
-        if (!isOnBottom()) {
-            iFooter.show();
-        } else {
-            hideLoadFooter();
-        }
+        iHeader.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (!isOnBottom()) {
+                    iFooter.show();
+                } else {
+                    hideLoadFooter();
+                }
+            }
+        },20);
     }
 
     public void loaded() {
